@@ -1,7 +1,13 @@
 #include <Arduino.h>
 #include <main.cpp>
 
-#include "ShiftRegister.h"
+#include "Display.h"
+
+#define STROBE 13
+#define DATA 12
+#define CLOCK 11
+
+Display disp(STROBE, DATA, CLOCK);
 
 void setup() {
 	// all pins (apart from the serian inout) set as output
@@ -9,20 +15,13 @@ void setup() {
 		pinMode(a, OUTPUT);
 		digitalWrite(a, LOW);
 	}
+
+	// init the display for two lines
+	disp.init(2);
+
+	// print something
+	disp << "Hi Giulia! " << Display::move_to(0, 1) << "How are you?";
 }
 
-/////////////////
-
-#define STROBE 13
-#define DATA 12
-#define CLOCK 11
-
-ShiftRegister reg(STROBE, DATA, CLOCK);
-
 void loop() {
-	for(unsigned a=0;a<8;a++) {
-		reg.write(1 << a);
-		// reg.write(0);
-		delay(100);
-	}
 }
