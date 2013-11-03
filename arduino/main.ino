@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <main.cpp>
 
+#include "Display.h"
+
 #define LEFT_THR 256
 #define RIGHT_THR 768
 
@@ -18,19 +20,22 @@
 #define Y_SENS 11
 #define Z_SENS 12
 
+#define DISP_STROBE 13
+#define DISP_DATA 12
+#define DISP_CLOCK 11
+
+Display disp(DISP_STROBE, DISP_DATA, DISP_CLOCK);
+
 void setup() {
 	// all pins (apart from the serian inout) set as output
 	for(unsigned a=2;a<=13;a++)
 		pinMode(a, OUTPUT);
-	pinMode(X_SENS, INPUT_PULLUP);
-	pinMode(Y_SENS, INPUT_PULLUP);
-	pinMode(Z_SENS, INPUT_PULLUP);
-	pinMode(13, OUTPUT);
+	// pinMode(X_SENS, INPUT_PULLUP);
+	// pinMode(Y_SENS, INPUT_PULLUP);
+	// pinMode(Z_SENS, INPUT_PULLUP);
+	// pinMode(13, OUTPUT);
 
-	// initialise serial
-	Serial.begin(9600);
 
-	// broken
 	digitalWrite(2, LOW);	// step 0
 	digitalWrite(3, LOW);	// dir 0
 	digitalWrite(4, HIGH);	// enable 0
@@ -41,18 +46,29 @@ void setup() {
 	digitalWrite(9, LOW);	// dir 2
 	digitalWrite(7, HIGH);	// enable 1 + 2
 
-	digitalWrite(13, LOW);
-	// 10, 11, 12 - sensor inputs
+	// initialise the display and print something
+	disp.init(2);
+	disp << "*** LONDON HACKSPACE ***" << Display::move_to(0, 1) << "Initialising...";
+
+	// initialise serial
+	Serial.begin(9600);
+	delay(1000);
 
 }
 
 int xPos = 0, yPos = 0, zPos = 0;
 
-void loop() {
+unsigned buttonData(unsigned pin) {
+	unsigned val = analogRead(pin);
+	val += 128;
+	val /= 256;
+	return val;
+}
 
-	int x = analogRead(0);
-	int y = analogRead(1);
-	int z = analogRead(2);
+void loop() {
+	int x = analogRead(4);
+	int y = analogRead(5);
+	int z = analogRead(6);
 
 	if(x < LEFT_THR) {
 		digitalWrite(3, HIGH);
@@ -105,26 +121,16 @@ void loop() {
 	static unsigned counter = 0;
 	counter++;
 	if(counter == 100) {
-		Serial.print("x=");
-		Serial.print(xPos);
-		Serial.print(" (");
-		Serial.print(digitalRead(10));
-		Serial.print(")  ");
-		
-		Serial.print("y=");
-		Serial.print(yPos);
-		Serial.print(" (");
-		Serial.print(digitalRead(11));
-		Serial.print(")  ");
-		
-		Serial.print("z=");
-		Serial.print(zPos);
-		Serial.print(" (");
-		Serial.print(digitalRead(12));
-		Serial.print(")  ");
+		disp.clear();
+		disp << Display::move_to(0,1) << "x=" << xPos;
+		disp << Display::move_to(8,1) << "y=" << yPos;
+		disp << Display::move_to(16,1) << "z=" << zPos;
 
-		Serial.println();
-
+		disp << Display::move_to(0,0) << buttonData(0);
+		disp << Display::move_to(6,0) << buttonData(1);
+		disp << Display::move_to(12,0) << buttonData(2);
+		disp << Display::move_to(18,0) << buttonData(3);
+ 
 		counter = 0;
 	}
 }

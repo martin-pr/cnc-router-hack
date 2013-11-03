@@ -29,10 +29,11 @@ void Display::init(unsigned char lineCount, bool showCursor) {
 
 void Display::clear() {
 	writeByte(0, 0, 0b00000001);
+	delay(1);
 }
 
 Display& Display::operator << (const move_to& m) {
-	writeByte(0, 0, 0b10000000 | (40*m.y + m.x));
+	writeByte(0, 0, 0b10000000 | (m.x + 0x40*m.y));
 
 	return *this;
 }
