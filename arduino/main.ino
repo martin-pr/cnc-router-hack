@@ -3,13 +3,6 @@
 
 #include "Display.h"
 
-#define LEFT_THR 256
-#define RIGHT_THR 768
-
-// #define ??_STEP 2
-// #define ??_DIR 3
-// #define ??_ENABLE 4
-
 #define X_STEP 5
 #define X_DIR 6
 #define Y_STEP 8
@@ -66,33 +59,29 @@ unsigned buttonData(unsigned pin) {
 }
 
 void loop() {
-	int x = analogRead(4);
-	int y = analogRead(5);
-	int z = analogRead(6);
-
-	if(x < LEFT_THR) {
+	if(buttonData(1) == 2) {
 		digitalWrite(3, HIGH);
 		xPos--;
 	}
-	if(x > RIGHT_THR)  {
+	if(buttonData(1) == 3)  {
 		digitalWrite(3, LOW);
 		xPos++;
 	}
 
-	if(y < LEFT_THR) {
+	if(buttonData(1) == 1) {
 		digitalWrite(6, HIGH);
 		yPos--;
 	}
-	if(y > RIGHT_THR) {
+	if(buttonData(1) == 4) {
 		digitalWrite(6, LOW);
 		yPos++;
 	}
 
-	if(z < LEFT_THR) {
+	if(buttonData(0) == 2) {
 		digitalWrite(9, HIGH);
 		zPos--;
 	}
-	if(z > RIGHT_THR) {
+	if(buttonData(0) == 4) {
 		digitalWrite(9, LOW);
 		zPos++;
 	}
@@ -101,13 +90,13 @@ void loop() {
 	delayMicroseconds(5);
 
 
-	if((x < LEFT_THR) || (x > RIGHT_THR))
+	if((buttonData(1) == 2) || (buttonData(1) == 3))
 		digitalWrite(2, HIGH);
 
-	if((y < LEFT_THR) || (y > RIGHT_THR))
+	if((buttonData(1) == 1) || (buttonData(1) == 4))
 		digitalWrite(5, HIGH);
 
-	if((z < LEFT_THR) || (z > RIGHT_THR))
+	if((buttonData(0) == 2) || (buttonData(0) == 4))
 		digitalWrite(8, HIGH);
 
 
@@ -122,15 +111,15 @@ void loop() {
 	counter++;
 	if(counter == 100) {
 		disp.clear();
-		disp << Display::move_to(0,1) << "x=" << xPos;
-		disp << Display::move_to(8,1) << "y=" << yPos;
-		disp << Display::move_to(16,1) << "z=" << zPos;
+		disp << Display::move_to(0,0) << "x=" << xPos;
+		disp << Display::move_to(8,0) << "y=" << yPos;
+		disp << Display::move_to(16,0) << "z=" << zPos;
 
-		disp << Display::move_to(0,0) << buttonData(0);
-		disp << Display::move_to(6,0) << buttonData(1);
-		disp << Display::move_to(12,0) << buttonData(2);
-		disp << Display::move_to(18,0) << buttonData(3);
- 
+		disp << Display::move_to(0,1) << buttonData(0);
+		disp << Display::move_to(6,1) << buttonData(1);
+		disp << Display::move_to(12,1) << buttonData(2);
+		disp << Display::move_to(18,1) << buttonData(3);
+
 		counter = 0;
 	}
 }
