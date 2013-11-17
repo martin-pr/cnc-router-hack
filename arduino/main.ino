@@ -2,60 +2,137 @@
 #include <main.cpp>
 
 #include "Display.h"
+#include "Buttons.h"
 
-#define X_STEP 5
-#define X_DIR 6
-#define Y_STEP 8
-#define Y_DIR 9
-#define XY_ENABLE 7
+// digital pins
+#define X_STEP 2
+#define X_DIR 3 // HIGH = negative, LOW = positive
+#define Y_STEP 5
+#define Y_DIR 6 // HIGH = negative, LOW = positive
+#define XY_ENABLE 4
 
-#define X_SENS 10
-#define Y_SENS 11
-#define Z_SENS 12
+#define Z_ENABLE 7
+#define Z_STEP 8
+#define Z_DIR 9 // HIGH = negative, LOW = positive
 
-#define DISP_STROBE 13
-#define DISP_DATA 12
+#define PIEZO 10
+
 #define DISP_CLOCK 11
+#define DISP_DATA 12
+#define DISP_STROBE 13
+
+// analog inputs
+#define BUTTONS_0 0
+#define BUTTONS_1 1
+#define BUTTONS_2 2
+#define BUTTONS_3 3
+
+#define X_SENS 4
+#define Y_SENS 5
+#define Z_SENS 6
+
+// the calibration data
+#define CENTER 25000
+
+#define X_LIMIT 50000
+#define Y_LIMIT 50000
+#define Z_LIMIT 1000
+
+// timing limits
+#define MIN_STEP_DELAY 50
+
+////////////////////////////////////////////////////////////////
 
 Display disp(DISP_STROBE, DISP_DATA, DISP_CLOCK);
+
+// position variables
+long xPos = CENTER, yPos = CENTER, zPos = 0;
+
+///////////////////////////////////////////////////////////////
 
 void setup() {
 	// all pins (apart from the serian inout) set as output
 	for(unsigned a=2;a<=13;a++)
 		pinMode(a, OUTPUT);
-	// pinMode(X_SENS, INPUT_PULLUP);
-	// pinMode(Y_SENS, INPUT_PULLUP);
-	// pinMode(Z_SENS, INPUT_PULLUP);
-	// pinMode(13, OUTPUT);
 
+	digitalWrite(X_STEP, LOW);	// step 0
+	digitalWrite(X_DIR, LOW);	// dir 0
+	digitalWrite(XY_ENABLE, HIGH);	// enable 0 + 1
+	digitalWrite(Y_STEP, LOW);	// step 1
+	digitalWrite(Y_DIR, LOW);	// dir 1
 
-	digitalWrite(2, LOW);	// step 0
-	digitalWrite(3, LOW);	// dir 0
-	digitalWrite(4, HIGH);	// enable 0
+	digitalWrite(Z_ENABLE, HIGH);	// enable 2
+	digitalWrite(Z_STEP, LOW);	// step 2
+	digitalWrite(Z_DIR, LOW);	// dir 2
 
-	digitalWrite(5, LOW);	// step 1
-	digitalWrite(6, LOW);	// dir 1
-	digitalWrite(8, LOW);	// step 2
-	digitalWrite(9, LOW);	// dir 2
-	digitalWrite(7, HIGH);	// enable 1 + 2
-
-	// initialise the display and print something
+	// initialise the display
 	disp.init(2);
-	disp << "*** LONDON HACKSPACE ***" << Display::move_to(0, 1) << "Initialising...";
 
-	// initialise serial
+	//////////////////////////////////
+	// INITIALISATION PROCEDURE
+	disp << Display::move_to(0, 0) << "**** INITIALISATION ****";
+
+	// first make sure the limits work
+	/*disp << Display::move_to(0, 1) << "Press the Z limit...";
+	while(analogRead(Z_SENS) < 512)
+		;
+
+	disp << Display::move_to(0, 1) << "Press the X limit...";
+	while(analogRead(X_SENS) < 512)
+		;
+
+	disp << Display::move_to(0, 1) << "Press the Y limit...";
+	while(analogRead(Y_SENS) < 512)
+		;*/
+
+
+	// first make sure the limits work
+	/*disp << Display::move_to(0, 1) << "Calibrating Z limit   ";
+	digitalWrite(Z_DIR, HIGH);
+	while(analogRead(Z_SENS) < 512) {
+		digitalWrite(Z_STEP, HIGH);
+		delayMicroseconds(20);
+		digitalWrite(Z_STEP, LOW);
+		delayMicroseconds(20);
+	}*/
+
+	disp << Display::move_to(0, 1) << "Calibrating X limit   ";
+	digitalWrite(X_DIR, HIGH);
+	while(analogRead(X_SENS) < 512) {
+		digitalWrite(X_STEP, HIGH);
+		delayMicroseconds(15);
+		digitalWrite(X_STEP, LOW);
+		delayMicroseconds(15);
+	}
+
+	disp << Display::move_to(0, 1) << "Calibrating Y limit   ";
+	digitalWrite(Y_DIR, HIGH);
+	while(analogRead(Y_SENS) < 512) {
+		digitalWrite(Y_STEP, HIGH);
+		delayMicroseconds(15);
+		digitalWrite(Y_STEP, LOW);
+		delayMicroseconds(15);
+	}
+
+	disp << Display::move_to(0, 1) << "Centering...          ";
+	digitalWrite(X_DIR, LOW);
+	for(unsigned long a=0;a<25000;a++) {
+		digitalWrite(X_STEP, HIGH);
+		delayMicroseconds(50);
+		digitalWrite(X_STEP, LOW);
+		delayMicroseconds(50);
+	}
+
+	digitalWrite(Y_DIR, LOW);
+	for(unsigned long a=0;a<25000;a++) {
+		digitalWrite(Y_STEP, HIGH);
+		delayMicroseconds(50);
+		digitalWrite(Y_STEP, LOW);
+		delayMicroseconds(50);
+	}
+
+	// initialise serial port
 	Serial.begin(9600);
-	delay(1000);
-
-}
-
-int xPos = 0, yPos = 0, zPos = 0;
-
-unsigned buttonData(unsigned pin) {
-	unsigned val = analogRead(pin);
-	val += 128;
-	val /= 256;
-	return val;
 }
 
 static const unsigned char buttonPins[4] = {BUTTONS_0, BUTTONS_1, BUTTONS_2, BUTTONS_3};
@@ -112,7 +189,7 @@ void loop() {
 	digitalWrite(Y_STEP, LOW);
 	digitalWrite(Z_STEP, LOW);
 
-	static unsigned counter = 0;
+	/*static unsigned counter = 0;
 	counter++;
 	if(counter == 100) {
 		disp.clear();
@@ -138,5 +215,5 @@ void loop() {
 		disp << " " << analogRead(7);
 
 		counter = 0;
-	}
+	}*/
 }
