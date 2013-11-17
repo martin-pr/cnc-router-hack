@@ -58,54 +58,59 @@ unsigned buttonData(unsigned pin) {
 	return val;
 }
 
+static const unsigned char buttonPins[4] = {BUTTONS_0, BUTTONS_1, BUTTONS_2, BUTTONS_3};
+Buttons buttons(buttonPins);
+
+unsigned state = 0;
 void loop() {
-	if(buttonData(1) == 2) {
-		digitalWrite(3, HIGH);
+	const unsigned long buttonState = buttons.readState();
+
+	if(buttonState & (1 << 5)) {
+		digitalWrite(X_DIR, HIGH);
 		xPos--;
 	}
-	if(buttonData(1) == 3)  {
-		digitalWrite(3, LOW);
+	if(buttonState & (1 << 6)) {
+		digitalWrite(X_DIR, LOW);
 		xPos++;
 	}
 
-	if(buttonData(1) == 1) {
-		digitalWrite(6, HIGH);
+	if(buttonState & (1 << 4)) {
+		digitalWrite(Y_DIR, HIGH);
 		yPos--;
 	}
-	if(buttonData(1) == 4) {
-		digitalWrite(6, LOW);
+	if(buttonState & (1 << 7)) {
+		digitalWrite(Y_DIR, LOW);
 		yPos++;
 	}
 
-	if(buttonData(0) == 2) {
-		digitalWrite(9, HIGH);
+	if(buttonState & (1 << 1)) {
+		digitalWrite(Z_DIR, HIGH);
 		zPos--;
 	}
-	if(buttonData(0) == 4) {
-		digitalWrite(9, LOW);
+	if(buttonState & (1 << 3)) {
+		digitalWrite(X_DIR, LOW);
 		zPos++;
 	}
 
+	delayMicroseconds(5);
+
+
+	if((buttonState & (1 << 5)) || (buttonState & (1 << 6)))
+		digitalWrite(X_STEP, HIGH);
+
+	if((buttonState & (1 << 4)) || (buttonState & (1 << 7)))
+		digitalWrite(Y_STEP, HIGH);
+
+	if((buttonState & (1 << 1)) || (buttonState & (1 << 3)))
+		digitalWrite(Z_STEP, HIGH);
+
 
 	delayMicroseconds(5);
 
 
-	if((buttonData(1) == 2) || (buttonData(1) == 3))
-		digitalWrite(2, HIGH);
-
-	if((buttonData(1) == 1) || (buttonData(1) == 4))
-		digitalWrite(5, HIGH);
-
-	if((buttonData(0) == 2) || (buttonData(0) == 4))
-		digitalWrite(8, HIGH);
-
-
-	delayMicroseconds(5);
-
-
-	digitalWrite(2, LOW);
-	digitalWrite(5, LOW);
-	digitalWrite(8, LOW);
+	digitalWrite(X_STEP, LOW);
+	digitalWrite(Y_STEP, LOW);
+	digitalWrite(Z_STEP, LOW);
 
 	static unsigned counter = 0;
 	counter++;
@@ -115,10 +120,22 @@ void loop() {
 		disp << Display::move_to(8,0) << "y=" << yPos;
 		disp << Display::move_to(16,0) << "z=" << zPos;
 
-		disp << Display::move_to(0,1) << buttonData(0);
-		disp << Display::move_to(6,1) << buttonData(1);
-		disp << Display::move_to(12,1) << buttonData(2);
-		disp << Display::move_to(18,1) << buttonData(3);
+		disp << Display::move_to(0,1);
+		for(int a=15;a>=0;a--)
+			if(buttonState & (1 << a))
+				disp << '#';
+			else
+				disp << '-';
+
+		disp << Display::move_to(18,1);
+		if(analogRead(X_SENS) > 512)
+			disp << "X";
+		if(analogRead(Y_SENS) > 512)
+			disp << "Y";
+		if(analogRead(Z_SENS) > 512)
+			disp << "Z";
+
+		disp << " " << analogRead(7);
 
 		counter = 0;
 	}
