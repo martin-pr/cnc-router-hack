@@ -2,3 +2,9 @@ arduino/build-*
 *b#?
 
 arduino/display/build-*
+
+cpp/CMakeCache.txt
+cpp/CMakeFiles
+cpp/Makefile
+cpp/cmake_install.cmake
+cpp/router
