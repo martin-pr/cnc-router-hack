@@ -32,11 +32,12 @@
 #define Z_SENS 6
 
 // the calibration data
-#define CENTER 25000
+#define X_CENTER 25000
+#define Y_CENTER 24000
 
 #define X_LIMIT 50000
-#define Y_LIMIT 50000
-#define Z_LIMIT 1000
+#define Y_LIMIT 48000
+#define Z_LIMIT 1200
 
 // timing limits
 #define MIN_STEP_DELAY 50
@@ -46,7 +47,7 @@
 Display disp(DISP_STROBE, DISP_DATA, DISP_CLOCK);
 
 // position variables
-long xPos = CENTER, yPos = CENTER, zPos = 0;
+long xPos = X_CENTER, yPos = Y_CENTER, zPos = 0;
 
 ///////////////////////////////////////////////////////////////
 
@@ -73,31 +74,52 @@ void setup() {
 	disp << Display::move_to(0, 0) << "**** INITIALISATION ****";
 
 	// first make sure the limits work
-	/*disp << Display::move_to(0, 1) << "Press the Z limit...";
-	while(analogRead(Z_SENS) < 512)
-		;
+	// disp << Display::move_to(0, 1) << "Press the Z limit...";
+	// while(analogRead(Z_SENS) < 512)
+	// 	;
+	// while(analogRead(Z_SENS) > 512)
+	// 	;
 
-	disp << Display::move_to(0, 1) << "Press the X limit...";
-	while(analogRead(X_SENS) < 512)
-		;
+	// disp << Display::move_to(0, 1) << "Press the X limit...";
+	// while(analogRead(X_SENS) < 512)
+	// 	;
+	// while(analogRead(X_SENS) > 512)
+	// 	;
 
-	disp << Display::move_to(0, 1) << "Press the Y limit...";
-	while(analogRead(Y_SENS) < 512)
-		;*/
+	// disp << Display::move_to(0, 1) << "Press the Y limit...";
+	// while(analogRead(Y_SENS) < 512)
+	// 	;
+	// while(analogRead(Y_SENS) > 512)
+	// 	;
 
 
-	// first make sure the limits work
-	/*disp << Display::move_to(0, 1) << "Calibrating Z limit   ";
+	disp << Display::move_to(0, 1) << "Calibrating Z limit   ";
 	digitalWrite(Z_DIR, HIGH);
 	while(analogRead(Z_SENS) < 512) {
 		digitalWrite(Z_STEP, HIGH);
-		delayMicroseconds(20);
+		delayMicroseconds(200);
 		digitalWrite(Z_STEP, LOW);
-		delayMicroseconds(20);
-	}*/
+		delayMicroseconds(200);
+	}
+
+	digitalWrite(Z_DIR, LOW);
+	while(analogRead(Z_SENS) > 512) {
+		digitalWrite(Z_STEP, HIGH);
+		delayMicroseconds(50);
+		digitalWrite(Z_STEP, LOW);
+		delayMicroseconds(50);
+	}
 
 	disp << Display::move_to(0, 1) << "Calibrating X limit   ";
 	digitalWrite(X_DIR, HIGH);
+	while(analogRead(X_SENS) < 512) {
+		digitalWrite(X_STEP, HIGH);
+		delayMicroseconds(15);
+		digitalWrite(X_STEP, LOW);
+		delayMicroseconds(15);
+	}
+
+	digitalWrite(X_DIR, LOW);
 	while(analogRead(X_SENS) < 512) {
 		digitalWrite(X_STEP, HIGH);
 		delayMicroseconds(15);
@@ -114,9 +136,17 @@ void setup() {
 		delayMicroseconds(15);
 	}
 
+	digitalWrite(Y_DIR, LOW);
+	while(analogRead(Y_SENS) > 512) {
+		digitalWrite(Y_STEP, HIGH);
+		delayMicroseconds(15);
+		digitalWrite(Y_STEP, LOW);
+		delayMicroseconds(15);
+	}
+
 	disp << Display::move_to(0, 1) << "Centering...          ";
 	digitalWrite(X_DIR, LOW);
-	for(unsigned long a=0;a<25000;a++) {
+	for(unsigned long a=0;a<X_CENTER;a++) {
 		digitalWrite(X_STEP, HIGH);
 		delayMicroseconds(50);
 		digitalWrite(X_STEP, LOW);
@@ -124,12 +154,15 @@ void setup() {
 	}
 
 	digitalWrite(Y_DIR, LOW);
-	for(unsigned long a=0;a<25000;a++) {
+	for(unsigned long a=0;a<Y_CENTER;a++) {
 		digitalWrite(Y_STEP, HIGH);
 		delayMicroseconds(50);
 		digitalWrite(Y_STEP, LOW);
 		delayMicroseconds(50);
 	}
+
+	disp << Display::move_to(0, 1) << "Ready for action...   ";
+
 
 	// initialise serial port
 	Serial.begin(9600);
@@ -142,43 +175,53 @@ unsigned state = 0;
 void loop() {
 	const unsigned long buttonState = buttons.readState();
 
-	if(buttonState & (1 << 5)) {
+	bool xMotion = false;
+	bool yMotion = false;
+	bool zMotion = false;
+
+	if((buttonState & (1 << 5)) && (xPos > 0)) {
 		digitalWrite(X_DIR, HIGH);
+		xMotion = true;
 		xPos--;
 	}
-	if(buttonState & (1 << 6)) {
+	if((buttonState & (1 << 6)) && (xPos < X_LIMIT)) {
 		digitalWrite(X_DIR, LOW);
+		xMotion = true;
 		xPos++;
 	}
 
-	if(buttonState & (1 << 4)) {
+	if((buttonState & (1 << 4)) && (yPos > 0)) {
 		digitalWrite(Y_DIR, HIGH);
+		yMotion = true;
 		yPos--;
 	}
-	if(buttonState & (1 << 7)) {
+	if((buttonState & (1 << 7)) && (yPos < Y_LIMIT)) {
 		digitalWrite(Y_DIR, LOW);
+		yMotion = true;
 		yPos++;
 	}
 
-	if(buttonState & (1 << 1)) {
+	if((buttonState & (1 << 3)) && (zPos > 0)) {
 		digitalWrite(Z_DIR, HIGH);
+		zMotion = true;
 		zPos--;
 	}
-	if(buttonState & (1 << 3)) {
-		digitalWrite(X_DIR, LOW);
+	if((buttonState & (1 << 1)) && (zPos < Z_LIMIT)) {
+		digitalWrite(Z_DIR, LOW);
+		zMotion = true;
 		zPos++;
 	}
 
 	delayMicroseconds(5);
 
 
-	if((buttonState & (1 << 5)) || (buttonState & (1 << 6)))
+	if(xMotion)
 		digitalWrite(X_STEP, HIGH);
 
-	if((buttonState & (1 << 4)) || (buttonState & (1 << 7)))
+	if(yMotion)
 		digitalWrite(Y_STEP, HIGH);
 
-	if((buttonState & (1 << 1)) || (buttonState & (1 << 3)))
+	if(zMotion)
 		digitalWrite(Z_STEP, HIGH);
 
 
@@ -189,7 +232,7 @@ void loop() {
 	digitalWrite(Y_STEP, LOW);
 	digitalWrite(Z_STEP, LOW);
 
-	/*static unsigned counter = 0;
+	static unsigned counter = 0;
 	counter++;
 	if(counter == 100) {
 		disp.clear();
@@ -215,5 +258,5 @@ void loop() {
 		disp << " " << analogRead(7);
 
 		counter = 0;
-	}*/
+	}
 }
