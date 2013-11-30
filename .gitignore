@@ -8,3 +8,4 @@ cpp/CMakeFiles
 cpp/Makefile
 cpp/cmake_install.cmake
 cpp/router
+cpp/moc_*.cxx
