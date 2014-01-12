@@ -9,3 +9,9 @@ cpp/Makefile
 cpp/cmake_install.cmake
 cpp/router
 cpp/moc_*.cxx
+
+command_line/CMakeCache.txt
+command_line/CMakeFiles
+command_line/Makefile
+command_line/cmake_install.cmake
+command_line/router
