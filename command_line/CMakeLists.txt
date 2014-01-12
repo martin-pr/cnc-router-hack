@@ -7,6 +7,7 @@ find_library(LIBSERIALBUF NAMES serial)
 SET(ROUTER_SOURCES
 	main.cpp
 	command.cpp
+	document.cpp
 )
 
 add_executable (router ${ROUTER_SOURCES})
