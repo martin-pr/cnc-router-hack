@@ -19,11 +19,12 @@ document::document() :
 }
 
 const command& document::operator[](unsigned index) const {
-
+	assert(index < m_commands.size());
+	return m_commands[index];
 }
 
 const unsigned document::size() const {
-
+	return m_commands.size();
 }
 
 const float document::xMin() const {
