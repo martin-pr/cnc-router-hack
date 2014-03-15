@@ -9,7 +9,22 @@ Display::Display(unsigned char strobe, unsigned char data, unsigned char clock) 
 }
 
 void Display::init(unsigned char lineCount, bool showCursor) {
-	// set the communication mode first (4 bytes)
+	// set the communication mode first (4 bits)
+	//   - must be sent 3 times to make sure it sticks - can't be sure what the init state was
+	//   - 2x 8-bit (if started with 8 or 4 bit, results always in 8 bit)
+	//   - 1x 4-bit (consistently ends up with 4 bit)
+
+	// 8 bit
+	m_register.write(0b00110000);
+	m_register.write(0b00110100);
+	m_register.write(0b00110000);
+
+	// 8 bit
+	m_register.write(0b00110000);
+	m_register.write(0b00110100);
+	m_register.write(0b00110000);
+	
+	// 4 bit
 	m_register.write(0b00100000);
 	m_register.write(0b00100100);
 	m_register.write(0b00100000);
