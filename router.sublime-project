@@ -4,6 +4,14 @@
 		{
 			"follow_symlinks": true,
 			"path": "arduino"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "command_line"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "arduino_testing"
 		}
 	]
 }

@@ -90,22 +90,26 @@ int main(int argc, char* argv[]) {
 		boost::algorithm::trim(line);
 
 		if(line == "stop") {
-			cout << "'stop' command, exiting." << endl;
+			cout << endl << "'stop' command, exiting." << endl;
 			return 0;
 		}
 
 		else if(line == "run") {
-			cout << "'stop' command, routing..." << endl;
+			cout << endl << "'run' command, routing..." << endl;
 			running = true;
+			nextCommand = true;
 		}
 
 		else if(line == "pause") {
-			cout << "'pause' command, waiting..." << endl;
+			cout << endl << "'pause' command, waiting..." << endl;
 			running = false;
 		}
 
 		else if(line == "next")
 			nextCommand = true;
+
+		else if((line.length() > 4) && (line.substr(0,4) == "info"))
+			cout << endl << "\e[0;36m" << line.substr(5) << "\e[0m" << endl;
 
 		// send a new command
 		if(nextCommand && running) {
@@ -114,14 +118,17 @@ int main(int argc, char* argv[]) {
 				com << doc[commandCounter] << endl;
 				ser.Write(com.str());
 
-				cout << "sending command " << commandCounter << "/" << (doc.size()-1) << endl;
+				cout << "\r" << "sending command " << commandCounter << "/" << (doc.size()-1);
 
 				++commandCounter;
 				nextCommand = false;
+
+				if(commandCounter == doc.size())
+					cout << endl << "routing finished." << endl;
 			}
 		}
 
-
+		cout << std::flush;
 	}
 
 	ser.Close();
