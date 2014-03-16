@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <main.cpp>
 
+#include "router.h"
+
 const String readLine() {
 	String result;
 
@@ -18,6 +20,11 @@ const String readLine() {
 
 	return result;
 }
+
+//////////////////////////
+
+const float divisors[3] = {100.0f, 100.0f, 100.0f};
+router Router(divisors);
 
 void setup() {
 	// initialise serial port
@@ -50,6 +57,8 @@ void loop() {
 			Serial.print("info ");
 			Serial.print(s);
 			Serial.print("'\n");
+
+			Router.gcode(s);
 		}
 
 		// G20 means the g-code file was in imperial units - just fail
