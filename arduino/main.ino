@@ -3,6 +3,8 @@
 
 #include "Display.h"
 #include "Buttons.h"
+#include "Print.h"
+#include "Motor.h"
 
 // digital pins
 #define X_STEP 2
@@ -47,9 +49,6 @@
 ////////////////////////////////////////////////////////////////
 
 Display disp(DISP_STROBE, DISP_DATA, DISP_CLOCK);
-
-// position variables
-long xPos = X_CENTER, yPos = Y_CENTER, zPos = 0;
 
 ///////////////////////////////////////////////////////////////
 
@@ -211,7 +210,10 @@ void setup() {
 
 	initRounter();
 
-	Serial.println("OK");
+	disp << Display::move_to(0, 0) << "*  LONDON  HACKSPACE  *";
+	disp << Display::move_to(0, 1) << "*    router ready     *";
+
+	Serial << "OK" << endl;
 }
 
 static const unsigned char buttonPins[4] = {BUTTONS_0, BUTTONS_1, BUTTONS_2, BUTTONS_3};
@@ -223,6 +225,11 @@ unsigned long currentButtonState = 0;
 // the buffer for commands reading
 char commandBuffer[256];
 
+// the motors
+Motor XMotor(X_STEP, X_DIR, X_LIMIT);
+Motor YMotor(Y_STEP, Y_DIR, Y_LIMIT);
+Motor ZMotor(Z_STEP, Z_DIR, Z_LIMIT);
+
 unsigned state = 0;
 void loop() {
 	/////////////////////
@@ -230,68 +237,46 @@ void loop() {
 
 	const unsigned long buttonState = buttons.readState();
 
-	bool xMotion = false;
-	bool yMotion = false;
-	bool zMotion = false;
-
 	// left
-	if((buttonState & (1 << 5)) && (xPos > 0)) {
-		digitalWrite(X_DIR, HIGH);
-		xMotion = true;
-		xPos--;
+	if(buttonState & (1 << 5)) {
+		XMotor.setDirection(true);
+		XMotor.setClock(true);
 	}
 	// right
-	if((buttonState & (1 << 6)) && (xPos < X_LIMIT)) {
-		digitalWrite(X_DIR, LOW);
-		xMotion = true;
-		xPos++;
+	else if(buttonState & (1 << 6)) {
+		XMotor.setDirection(false);
+		XMotor.setClock(true);
 	}
 
 	// backwards
-	if((buttonState & (1 << 4)) && (yPos > 0)) {
-		digitalWrite(Y_DIR, HIGH);
-		yMotion = true;
-		yPos--;
+	if(buttonState & (1 << 4)) {
+		YMotor.setDirection(true);
+		YMotor.setClock(true);
 	}
 	// forwards
-	if((buttonState & (1 << 7)) && (yPos < Y_LIMIT)) {
-		digitalWrite(Y_DIR, LOW);
-		yMotion = true;
-		yPos++;
+	else if(buttonState & (1 << 7)) {
+		YMotor.setDirection(false);
+		YMotor.setClock(true);
 	}
 
 	// up
-	if((buttonState & (1 << 3)) && (zPos > 0)) {
-		digitalWrite(Z_DIR, HIGH);
-		zMotion = true;
-		zPos--;
+	if(buttonState & (1 << 3)) {
+		ZMotor.setDirection(true);
+		ZMotor.setClock(true);
 	}
 	// down
-	if((buttonState & (1 << 1)) && (zPos < Z_LIMIT)) {
-		digitalWrite(Z_DIR, LOW);
-		zMotion = true;
-		zPos++;
+	else if(buttonState & (1 << 1)) {
+		ZMotor.setDirection(false);
+		ZMotor.setClock(true);
 	}
 
 	// do the motion
-	if(xMotion || yMotion || zMotion) {
-		delayMicroseconds(5);
+	if(XMotor.clock() || YMotor.clock() || ZMotor.clock()) {
+		delayMicroseconds(10);
 
-		if(xMotion)
-			digitalWrite(X_STEP, HIGH);
-
-		if(yMotion)
-			digitalWrite(Y_STEP, HIGH);
-
-		if(zMotion)
-			digitalWrite(Z_STEP, HIGH);
-
-		delayMicroseconds(5);
-
-
-		digitalWrite(X_STEP, LOW);
-		digitalWrite(Y_STEP, LOW);
-		digitalWrite(Z_STEP, LOW);
+		XMotor.setClock(false);
+		YMotor.setClock(false);
+		ZMotor.setClock(false);
 	}
 
 
@@ -301,23 +286,23 @@ void loop() {
 	if(currentButtonState != buttonState) {
 		// bbox button (originally menu)
 		if(buttonState & (1 << 2))
-			Serial.println("bbox");
+			Serial << "bbox" << endl;
 
 		// pause
 		if(buttonState & (1 << 8))
-			Serial.println("pause");
+			Serial << "pause" << endl;
 
 		// run
 		if(buttonState & (1 << 10))
-			Serial.println("run");
+			Serial << "run" << endl;
 
 		// home
 		if(buttonState & (1 << 11))
-			Serial.println("home");
+			Serial << "home" << endl;
 
 		// stop - immediately stops anything in progress
 		if(buttonState & (1 << 15)) {
-			Serial.println("stop");
+			Serial << "stop" << endl;
 			while(true)
 				;
 		}
@@ -338,45 +323,10 @@ void loop() {
 			commandBuffer[charCount-1] = '\0';
 
 			// and display it
-			disp << Display::move_to(0, 0) << commandBuffer;
+			disp << Display::move_to(0, 1) << commandBuffer;
 
 			// return a "next" to tell the computer to send another one
-			Serial.println("next");
+			Serial << "next" << endl;
 		}
 	}
-
-
-	//////////////////////
-	// DISPLAY CONTENT
-
-	// disp.clear();
-	// disp << Display::move_to(0,0) << analogRead(SPEED);
-
-	// static unsigned counter = 0;
-	// counter++;
-	// if(counter == 100) {
-	// 	disp.clear();
-	// 	disp << Display::move_to(0,0) << "x=" << xPos;
-	// 	disp << Display::move_to(8,0) << "y=" << yPos;
-	// 	disp << Display::move_to(16,0) << "z=" << zPos;
-
-	// 	disp << Display::move_to(0,1);
-	// 	for(int a=15;a>=0;a--)
-	// 		if(buttonState & (1 << a))
-	// 			disp << '#';
-	// 		else
-	// 			disp << '-';
-
-	// 	disp << Display::move_to(18,1);
-	// 	if(analogRead(X_SENS) > 512)
-	// 		disp << "X";
-	// 	if(analogRead(Y_SENS) > 512)
-	// 		disp << "Y";
-	// 	if(analogRead(Z_SENS) > 512)
-	// 		disp << "Z";
-
-	// 	disp << " " << analogRead(7);
-
-	// 	counter = 0;
-	// }
 }
