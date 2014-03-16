@@ -2,6 +2,8 @@
 #include <main.cpp>
 
 #include "router.h"
+#include "motor.h"
+#include "print.h"
 
 const String readLine() {
 	String result;
@@ -23,8 +25,13 @@ const String readLine() {
 
 //////////////////////////
 
-const float divisors[3] = {100.0f, 100.0f, 100.0f};
-router Router(divisors);
+motor XMotor(2, 3, 50000);
+motor YMotor(5, 6, 48000);
+motor ZMotor(8, 9, 1200);
+
+float divisors[3] = {100.0f, 100.0f, 100.0f};
+motor* motors[3] = {&XMotor, &YMotor, &ZMotor};
+router Router(divisors, motors);
 
 void setup() {
 	// initialise serial port
@@ -37,10 +44,10 @@ void setup() {
 			s = readLine();
 	} while (s != "INIT");
 
-	Serial.print("OK\n");
+	Serial << "OK" << endl;
 
 	delay(1000);
-	Serial.print("run\n");
+	Serial << "run" << endl;
 }
 
 void loop() {
@@ -54,9 +61,7 @@ void loop() {
 			delay(1);
 			digitalWrite(13, LOW);
 
-			Serial.print("info ");
-			Serial.print(s);
-			Serial.print("'\n");
+			// Serial << "info " << s << endl;
 
 			Router.gcode(s);
 		}

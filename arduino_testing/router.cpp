@@ -18,9 +18,19 @@ namespace {
 	}
 }
 
-router::router(const float stepsPerMM[3]) {
-	for(unsigned char a=0;a<3;a++)
+router::router(const float stepsPerMM[3], motor* motors[3]) : m_delay(1000) {
+	for(unsigned char a=0;a<3;a++) {
 		m_stepsPerMM[a] = stepsPerMM[a];
+		m_motors[a] = motors[a];
+	}
+}
+
+const unsigned router::delay() const {
+	return m_delay;
+}
+
+void router::setDelay(unsigned d) {
+	m_delay = d;
 }
 
 void router::gcode(const String& command) {
@@ -51,7 +61,6 @@ void router::gcode(const String& command) {
 				}
 			}
 		}
-
 		while(command[cursor] != '\0');
 
 		// command fully interpreted, do the movement
@@ -67,14 +76,18 @@ void router::lineTo(const vec<3>& target) {
 	if(target == m_pos)
 		return;
 
-	// compute the deltas and steps
+	// compute the deltas and steps + set up the motor directions
 	vec<3> delta, step;
 	for(unsigned char a=0;a<3;a++) {
 		delta[a] = target[a] - m_pos[a];
-		if(delta[a] < 0)
+		if(delta[a] < 0) {
 			step[a] = -1;
-		else
+			m_motors[a]->setDirection(true);
+		}
+		else {
 			step[a] = 1;
+			m_motors[a]->setDirection(false);
+		}
 		delta[a] = abs(delta[a]);
 	}
 
@@ -94,9 +107,24 @@ void router::lineTo(const vec<3>& target) {
 			if(error[a] < 0) {
 				m_pos[a] += step[a];
 				error[a] += delta[dominant];
+
+				// the motor's clock should go "up"
+				m_motors[a]->setClock(true);
 			}
 
 		// the "plot"
-		Serial << "info      " << m_pos << endl;
+		// Serial << "info      " << m_pos << endl;
+
+		// wait
+		delayMicroseconds(m_delay);
+
+		// unset the clock
+		for(unsigned char a=0;a<3;a++)
+			m_motors[a]->setClock(false);
+
+		// Serial << "info            ";
+		// for(unsigned char a=0;a<3;a++)
+		// 	Serial << m_motors[a]->value() << " ";
+		// Serial << endl;
 	}
 }
