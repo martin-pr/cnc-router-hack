@@ -11,6 +11,7 @@ class router {
 		void gcode(const String& command);
 
 	protected:
+		// linear interpolation using Bresenham's algorithm
 		void lineTo(const vec<3>& target);
 
 	private:

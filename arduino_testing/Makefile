@@ -7,6 +7,8 @@ BOARD_TAG    = atmega328
 MCU          = atmega328
 ARDUINO_PORT = /dev/ttyUSB*
 
+CWARN        = -Wall
+
 # HACK - avrdude's options don't match the BOARD tag on Saucy Salamander
 AVRDUDE_ARD_EXTRAOPTS = -p m328p
 

@@ -43,10 +43,7 @@ void router::gcode(const String& command) {
 
 				// unknown axis
 				else {
-					Serial.print("info ignoring unknown axis ");
-					Serial.print(command[cursor]);
-					Serial.print(" in command ");
-					Serial.println(command);
+					Serial << "info ignoring unknown axis " << command[cursor] << " in command " << command << endl;
 
 					// skip it
 					while((command[cursor] != ' ') && (command[cursor] != '\t') && (command[cursor] != '\0'))
@@ -62,19 +59,44 @@ void router::gcode(const String& command) {
 	}
 }
 
+// Bresenham in 3D - draws a line between m_pos and target (at the end, m_pos == target)
 void router::lineTo(const vec<3>& target) {
-	Serial.print("info     ");
-	Serial.print(m_pos[0]);
-	Serial.print(" ");
-	Serial.print(m_pos[1]);
-	Serial.print(" ");
-	Serial.print(m_pos[2]);
-	Serial.print(" -> ");
-	Serial.print(target[0]);
-	Serial.print(" ");
-	Serial.print(target[1]);
-	Serial.print(" ");
-	Serial.println(target[2]);
+	// Serial << "info     " << m_pos << "  ->  " << target << endl;
 
-	m_pos = target;
+	// the same - nothing to be done
+	if(target == m_pos)
+		return;
+
+	// compute the deltas and steps
+	vec<3> delta, step;
+	for(unsigned char a=0;a<3;a++) {
+		delta[a] = target[a] - m_pos[a];
+		if(delta[a] < 0)
+			step[a] = -1;
+		else
+			step[a] = 1;
+		delta[a] = abs(delta[a]);
+	}
+
+	// figure out the dominant axis
+	unsigned char dominant = 0;
+	if((delta[1] > delta[0]) && (delta[1] > delta[2]))
+		dominant = 1;
+	else if((delta[2] > delta[0]) && (delta[2] > delta[1]))
+		dominant = 2;
+
+	// the drawing itself
+	vec<3> error = delta[dominant] / 2;
+	while(m_pos[dominant] != target[dominant]) {
+		// step computation
+		error = error - delta;
+		for(unsigned char a=0;a<3;a++)
+			if(error[a] < 0) {
+				m_pos[a] += step[a];
+				error[a] += delta[dominant];
+			}
+
+		// the "plot"
+		Serial << "info      " << m_pos << endl;
+	}
 }
