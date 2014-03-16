@@ -1,17 +1,19 @@
-#include "motor.h"
+#include "Motor.h"
 
-motor::motor(unsigned char stepPin, unsigned char dirPin, long int maxValue, bool invertDirection) :
+Motor::Motor(unsigned char stepPin, unsigned char dirPin, long int maxValue, bool invertDirection) :
 	m_direction(false), m_clock(false), m_invertDirection(invertDirection),
 	m_stepPin(stepPin), m_dirPin(dirPin),
 	m_value(0), m_maxValue(maxValue) {
 
+	digitalWrite(m_stepPin, LOW);
+	digitalWrite(m_dirPin, LOW);
 }
 
-const bool motor::direction() const {
+const bool Motor::direction() const {
 	return m_direction;
 }
 
-void motor::setDirection(bool d) {
+void Motor::setDirection(bool d) {
 	m_direction = d;
 
 	if(m_direction == (!m_invertDirection))
@@ -20,11 +22,11 @@ void motor::setDirection(bool d) {
 		digitalWrite(m_dirPin, LOW);
 }
 
-const bool motor::clock() const {
+const bool Motor::clock() const {
 	return m_clock;
 }
 
-void motor::setClock(bool c) {
+void Motor::setClock(bool c) {
 	if(c) {
 		if(m_direction == (m_invertDirection)) {
 			if(m_value + 1 <= m_maxValue)
@@ -48,6 +50,6 @@ void motor::setClock(bool c) {
 		digitalWrite(m_stepPin, LOW);
 }
 
-const long int& motor::value() const {
+const long int& Motor::value() const {
 	return m_value;
 }

@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include <main.cpp>
 
-#include "router.h"
-#include "motor.h"
-#include "print.h"
+#include "Router.h"
+#include "Motor.h"
+#include "Print.h"
 
 const String readLine() {
 	String result;
@@ -25,13 +25,13 @@ const String readLine() {
 
 //////////////////////////
 
-motor XMotor(2, 3, 50000);
-motor YMotor(5, 6, 48000);
-motor ZMotor(8, 9, 1200);
+Motor XMotor(2, 3, 50000);
+Motor YMotor(5, 6, 48000);
+Motor ZMotor(8, 9, 1200);
 
 float divisors[3] = {100.0f, 100.0f, 100.0f};
-motor* motors[3] = {&XMotor, &YMotor, &ZMotor};
-router Router(divisors, motors);
+Motor* motors[3] = {&XMotor, &YMotor, &ZMotor};
+Router router(divisors, motors);
 
 void setup() {
 	// initialise serial port
@@ -63,7 +63,7 @@ void loop() {
 
 			// Serial << "info " << s << endl;
 
-			Router.gcode(s);
+			router.gcode(s);
 		}
 
 		// G20 means the g-code file was in imperial units - just fail

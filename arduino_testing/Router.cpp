@@ -1,4 +1,4 @@
-#include "router.h"
+#include "Router.h"
 
 namespace {
 	const float readFloat(const String& s, unsigned char& cursor) {
@@ -18,24 +18,24 @@ namespace {
 	}
 }
 
-router::router(const float stepsPerMM[3], motor* motors[3]) : m_delay(1000) {
+Router::Router(const float stepsPerMM[3], Motor* motors[3]) : m_delay(1000) {
 	for(unsigned char a=0;a<3;a++) {
 		m_stepsPerMM[a] = stepsPerMM[a];
 		m_motors[a] = motors[a];
 	}
 }
 
-const unsigned router::delay() const {
+const unsigned Router::delay() const {
 	return m_delay;
 }
 
-void router::setDelay(unsigned d) {
+void Router::setDelay(unsigned d) {
 	m_delay = d;
 }
 
-void router::gcode(const String& command) {
+void Router::gcode(const String& command) {
 	if((command.length() > 4) && (command[0] == 'G') && (command[1] == '0') && ((command[1] == '0') || (command[1] == '1'))) {
-		vec<3> target = m_pos;
+		Vec<3> target = m_pos;
 
 		unsigned char cursor = 3;
 		do {
@@ -69,7 +69,7 @@ void router::gcode(const String& command) {
 }
 
 // Bresenham in 3D - draws a line between m_pos and target (at the end, m_pos == target)
-void router::lineTo(const vec<3>& target) {
+void Router::lineTo(const Vec<3>& target) {
 	// Serial << "info     " << m_pos << "  ->  " << target << endl;
 
 	// the same - nothing to be done
@@ -77,7 +77,7 @@ void router::lineTo(const vec<3>& target) {
 		return;
 
 	// compute the deltas and steps + set up the motor directions
-	vec<3> delta, step;
+	Vec<3> delta, step;
 	for(unsigned char a=0;a<3;a++) {
 		delta[a] = target[a] - m_pos[a];
 		if(delta[a] < 0) {
@@ -99,7 +99,7 @@ void router::lineTo(const vec<3>& target) {
 		dominant = 2;
 
 	// the drawing itself
-	vec<3> error = delta[dominant] / 2;
+	Vec<3> error = delta[dominant] / 2;
 	while(m_pos[dominant] != target[dominant]) {
 		// step computation
 		error = error - delta;

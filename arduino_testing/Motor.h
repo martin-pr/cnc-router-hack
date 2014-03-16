@@ -2,9 +2,9 @@
 
 #include <Arduino.h>
 
-class motor {
+class Motor {
 	public:
-		motor(unsigned char stepPin, unsigned char dirPin, long int maxValue, bool invertDirection = false);
+		Motor(unsigned char stepPin, unsigned char dirPin, long int maxValue, bool invertDirection = false);
 
 		const bool direction() const;
 		void setDirection(bool d);
