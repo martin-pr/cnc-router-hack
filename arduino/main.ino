@@ -5,6 +5,7 @@
 #include "Buttons.h"
 #include "Print.h"
 #include "Motor.h"
+#include "Router.h"
 
 // digital pins
 #define X_STEP 2
@@ -38,6 +39,7 @@
 // the calibration data
 #define X_CENTER 25000
 #define Y_CENTER 24000
+#define Z_CENTER 1200
 
 #define X_LIMIT 50000
 #define Y_LIMIT 48000
@@ -148,6 +150,14 @@ void initRounter() {
 		delayMicroseconds(50);
 	}
 
+	// digitalWrite(Z_DIR, LOW);
+	// for(unsigned long a=0;a<Z_CENTER;a++) {
+	// 	digitalWrite(Z_STEP, HIGH);
+	// 	delayMicroseconds(50);
+	// 	digitalWrite(Z_STEP, LOW);
+	// 	delayMicroseconds(50);
+	// }
+
 	disp << Display::move_to(0, 1) << "Ready for action...   ";
 }
 
@@ -228,7 +238,13 @@ char commandBuffer[256];
 // the motors
 Motor XMotor(X_STEP, X_DIR, X_LIMIT, X_CENTER);
 Motor YMotor(Y_STEP, Y_DIR, Y_LIMIT, Y_CENTER);
-Motor ZMotor(Z_STEP, Z_DIR, Z_LIMIT, 0);
+Motor ZMotor(Z_STEP, Z_DIR, Z_LIMIT, Z_CENTER);
+
+// divisors - measured on the physical machine
+//   # of steps per mm
+float divisors[3] = {160.25f, 105.03f, -92.31f};
+Motor* motors[3] = {&XMotor, &YMotor, &ZMotor};
+Router router(divisors, motors);
 
 unsigned state = 0;
 void loop() {
@@ -313,20 +329,54 @@ void loop() {
 	//////////////////////
 	// COMMANDS PROCESSING
 
-	// if a command is available on the input
+	// // if a command is available on the input
+	// if(Serial.available()) {
+	// 	// read the whole command
+	// 	const unsigned charCount = Serial.readBytesUntil('\n', commandBuffer, 256);
+
+	// 	if(charCount > 0) {
+	// 		// add the end character (replacing the \n)
+	// 		commandBuffer[charCount-1] = '\0';
+
+	// 		// and display it
+	// 		disp << Display::move_to(0, 1) << commandBuffer;
+
+	// 		// return a "next" to tell the computer to send another one
+	// 		Serial << "next" << endl;
+	// 	}
+	// }
+
 	if(Serial.available()) {
-		// read the whole command
-		const unsigned charCount = Serial.readBytesUntil('\n', commandBuffer, 256);
+		String s = readLine();
 
-		if(charCount > 0) {
-			// add the end character (replacing the \n)
-			commandBuffer[charCount-1] = '\0';
+		// ASSUMES THAT EACH COMMAND IS ON ITS OWN LINE
+		// G00 and G01 are interpreted in the same way
+		if((s.length() > 4) && (s[0] == 'G') && (s[1] == '0') && ((s[2] == '0') || (s[2] == '1'))) {
+			digitalWrite(13, HIGH);
+			delay(1);
+			digitalWrite(13, LOW);
 
-			// and display it
-			disp << Display::move_to(0, 1) << commandBuffer;
+			// Serial << "info " << s << endl;
 
-			// return a "next" to tell the computer to send another one
-			Serial << "next" << endl;
+			router.gcode(s);
 		}
+
+		// G20 means the g-code file was in imperial units - just fail
+		else if((s.length() > 4) && (s[0] == 'G') && (s[1] == '2') && (s[2] == '0'))
+			Serial.print("error - g-code is in imperial units, this router works only in mm");
+
+		// G22 means the g-code file was in mm - all good
+		else if((s.length() > 4) && (s[0] == 'G') && (s[1] == '2') && (s[2] == '1'))
+			;
+
+		// an unknown command - ignore
+		else {
+			Serial.print("info ignored command '");
+			Serial.print(s);
+			Serial.print("'\n");
+		}
+
+		Serial.print("next\n");
 	}
+
 }
