@@ -4,7 +4,7 @@
 
 class Motor {
 	public:
-		Motor(unsigned char stepPin, unsigned char dirPin, long int maxValue, bool invertDirection = false);
+		Motor(unsigned char stepPin, unsigned char dirPin, long int maxValue, long int value, bool invertDirection = false);
 
 		const bool direction() const;
 		void setDirection(bool d);

@@ -226,9 +226,9 @@ unsigned long currentButtonState = 0;
 char commandBuffer[256];
 
 // the motors
-Motor XMotor(X_STEP, X_DIR, X_LIMIT);
-Motor YMotor(Y_STEP, Y_DIR, Y_LIMIT);
-Motor ZMotor(Z_STEP, Z_DIR, Z_LIMIT);
+Motor XMotor(X_STEP, X_DIR, X_LIMIT, X_CENTER);
+Motor YMotor(Y_STEP, Y_DIR, Y_LIMIT, Y_CENTER);
+Motor ZMotor(Z_STEP, Z_DIR, Z_LIMIT, 0);
 
 unsigned state = 0;
 void loop() {
