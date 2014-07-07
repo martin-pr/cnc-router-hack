@@ -150,14 +150,6 @@ void initRounter() {
 		delayMicroseconds(50);
 	}
 
-	// digitalWrite(Z_DIR, LOW);
-	// for(unsigned long a=0;a<Z_CENTER;a++) {
-	// 	digitalWrite(Z_STEP, HIGH);
-	// 	delayMicroseconds(50);
-	// 	digitalWrite(Z_STEP, LOW);
-	// 	delayMicroseconds(50);
-	// }
-
 	disp << Display::move_to(0, 1) << "Ready for action...   ";
 }
 
@@ -242,7 +234,7 @@ Motor ZMotor(Z_STEP, Z_DIR, Z_LIMIT, Z_CENTER);
 
 // divisors - measured on the physical machine
 //   # of steps per mm
-float divisors[3] = {160.25f, 105.03f, -92.31f};
+float divisors[3] = {155.5f, 155.5f, -92.31f};
 Motor* motors[3] = {&XMotor, &YMotor, &ZMotor};
 Router router(divisors, motors);
 
@@ -347,11 +339,22 @@ void loop() {
 	// }
 
 	if(Serial.available()) {
+		// read the next line from input
 		String s = readLine();
 
 		// ASSUMES THAT EACH COMMAND IS ON ITS OWN LINE
-		// G00 and G01 are interpreted in the same way
+		// G00 and G01 are interpreted in the same way, except for speed
 		if((s.length() > 4) && (s[0] == 'G') && (s[1] == '0') && ((s[2] == '0') || (s[2] == '1'))) {
+			// set the speed - max for G00, acc to the pot for G01
+			if(s[2] == '0')
+				// G00 = maximum speed movement
+				router.setDelay(1000);
+			else
+				// read the speed and set it as the delay of the router
+				//   - values determine the delay between two steps in microseconds, with 1000 as minimum and 10000 as maximum
+				router.setDelay(1000 + 9 * (1023 - analogRead(SPEED)));
+
+			// blink
 			digitalWrite(13, HIGH);
 			delay(1);
 			digitalWrite(13, LOW);
@@ -378,5 +381,4 @@ void loop() {
 
 		Serial.print("next\n");
 	}
-
 }

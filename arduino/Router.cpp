@@ -23,6 +23,8 @@ Router::Router(const float stepsPerMM[3], Motor* motors[3]) : m_delay(1000) {
 		m_stepsPerMM[a] = stepsPerMM[a];
 		m_motors[a] = motors[a];
 	}
+
+	// Serial << "info steps per mm: x=" << m_stepsPerMM[0] << ", y=" << m_stepsPerMM[1] << ", z=" << m_stepsPerMM[2] << endl;
 }
 
 const unsigned Router::delay() const {
@@ -49,6 +51,11 @@ void Router::gcode(const String& command) {
 					const unsigned char axis = command[cursor] - 'X';
 					const float val = readFloat(command, ++cursor);
 					target[axis] = round(val * m_stepsPerMM[axis]); // !!! round is implemented as a macro!
+
+					// Serial << "info target ";
+					// Serial << "x=" << target[0] << " (" << (target[0]/m_stepsPerMM[0]) << "mm)  ";
+					// Serial << "y=" << target[1] << " (" << (target[1]/m_stepsPerMM[1]) << "mm)  ";
+					// Serial << "z=" << target[2] << " (" << (target[2]/m_stepsPerMM[2]) << "mm)  " << endl;
 				}
 
 				// unknown axis
