@@ -1,0 +1,60 @@
+(.../pcb-gcode-3.6.2.4/pcb-gcode.ulp)
+(Copyright 2005 - 2012 by John Johnson)
+(See readme.txt for licensing terms.)
+(This file generated from the board:)
+(.../Hacks/Router/eagle/100x100_test.brd)
+(Current profile is .../pcb-gcode-3.6.2.4/profiles/generic.pp  )
+(This file generated 06/07/2014 16:58)
+(Settings from pcb-machine.h)
+(spindle on time = 3.0000)
+(  Tool Size)
+(0.1778 )
+(spindle speed = 30000.0000)
+(tool change at 0.0000 0.0000 25.4000 )
+(feed rate xy = F508.00 )
+(feed rate z  = F254.00 )
+(Z Axis Settings)
+(  High     Up        Down     Drill)
+(12.7000 	2.5400 	-0.1778 	-0.8128 )
+(Settings from pcb-defaults.h)
+(isolate min = 0.0254)
+(isolate max = 0.5080)
+(isolate step = 0.1270)
+(Generated bottom outlines, )
+(Unit of measure: mm)
+(Metric Mode)
+G21
+(Absolute Coordinates)
+G90
+S30000
+G00 Z12.7000 
+G00 X0.0000 Y0.0000 
+M03
+G04 P3.000000
+G00 Z2.5400 
+G00 X0.0909 Y-0.0707 
+G01 Z-0.1778 F254.00 
+G01 X0.0707 Y-0.0909 F508.00 
+G01 X0.0909 Y-0.0909 
+G01 X0.0909 Y-0.0707 
+G00 Z2.5400 
+G00 X0.0909 Y100.0707 
+G01 Z-0.1778 F254.00 
+G01 X0.0909 Y100.0909 F508.00 
+G01 X0.0707 Y100.0909 
+G01 X0.0909 Y100.0707 
+G00 Z2.5400 
+G00 X-100.0909 Y100.0707 
+G01 Z-0.1778 F254.00 
+G01 X-100.0707 Y100.0909 F508.00 
+G01 X-100.0909 Y100.0909 
+G01 X-100.0909 Y100.0707 
+G00 Z2.5400 
+G00 Z2.540000
+G00 X-50.0000 Y50.0000 
+G01 Z-0.2794 F508.00 
+G01 Z2.540000
+(R2.5400  P1.000000)
+G00 Z12.7000 
+M05
+M02
